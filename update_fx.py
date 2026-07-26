@@ -2,35 +2,47 @@ import pandas as pd
 import requests
 from datetime import datetime
 import os
+import time
+from datetime import datetime
 
-# 1. Fetch live rates from AwesomeAPI
+# 1. Fetch live rates from AwesomeAPI com tratamento de Rate Limit (429)
 url = "https://economia.awesomeapi.com.br/last/USD-BRL,EUR-BRL,GBP-BRL,CNY-BRL,JPY-BRL"
-res = requests.get(url)
-response = res.json()
+headers = {"User-Agent": "CurrenFluxApp/1.0"}
 
-# Debug: Print the exact keys returned by the API
-print(f"API Status Code: {res.status_code}")
-print(f"API Response Keys: {list(response.keys()) if isinstance(response, dict) else response}")
+response = None
+max_retries = 3
+
+for attempt in range(max_retries):
+    res = requests.get(url, headers=headers)
+    if res.status_code == 200:
+        response = res.json()
+        break
+    elif res.status_code == 429:
+        print(f"Rate limit atingido (429). Tentativa {attempt + 1} de {max_retries}. Aguardando 15 segundos...")
+        time.sleep(15)
+    else:
+        res.raise_for_status()
+
+if not response or not isinstance(response, dict):
+    raise RuntimeError(f"Não foi possível obter os dados da API. Resposta final: {res.text}")
 
 today = datetime.now().strftime("%Y-%m-%d")
 
-# Structure new row
+# Estruturar nova linha
 new_data = {"date": today}
 currencies = ["USD", "EUR", "GBP", "CNY", "JPY"]
 
 for curr in currencies:
-    # Try finding any key in response that starts with the currency code
     key_found = None
-    if isinstance(response, dict):
-        for k in response.keys():
-            if k.upper().startswith(curr):
-                key_found = k
-                break
+    for k in response.keys():
+        if k.upper().startswith(curr):
+            key_found = k
+            break
     
     if key_found:
         new_data[curr] = float(response[key_found]["bid"])
     else:
-        raise KeyError(f"Could not find key for {curr} in API response: {response}")
+        raise KeyError(f"Chave para {curr} não encontrada na resposta: {response}")
 
 # 2. Append/Update history CSV
 history_file = "fx_history.csv"
