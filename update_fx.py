@@ -5,7 +5,12 @@ import os
 
 # 1. Fetch live rates from AwesomeAPI
 url = "https://economia.awesomeapi.com.br/last/USD-BRL,EUR-BRL,GBP-BRL,CNY-BRL,JPY-BRL"
-response = requests.get(url).json()
+res = requests.get(url)
+response = res.json()
+
+# Debug: Print the exact keys returned by the API
+print(f"API Status Code: {res.status_code}")
+print(f"API Response Keys: {list(response.keys()) if isinstance(response, dict) else response}")
 
 today = datetime.now().strftime("%Y-%m-%d")
 
@@ -14,17 +19,18 @@ new_data = {"date": today}
 currencies = ["USD", "EUR", "GBP", "CNY", "JPY"]
 
 for curr in currencies:
-    # AwesomeAPI combines pair names into 'USDBRL', 'EURBRL', etc.
-    key = f"{curr}BRL"
+    # Try finding any key in response that starts with the currency code
+    key_found = None
+    if isinstance(response, dict):
+        for k in response.keys():
+            if k.upper().startswith(curr):
+                key_found = k
+                break
     
-    if key in response:
-        new_data[curr] = float(response[key]["bid"])
-    elif f"{curr}-BRL" in response:
-        new_data[curr] = float(response[f"{curr}-BRL"]["bid"])
+    if key_found:
+        new_data[curr] = float(response[key_found]["bid"])
     else:
-        # Fallback in case of lowercase key returning
-        lowered_dict = {k.upper(): v for k, v in response.items()}
-        new_data[curr] = float(lowered_dict[key]["bid"])
+        raise KeyError(f"Could not find key for {curr} in API response: {response}")
 
 # 2. Append/Update history CSV
 history_file = "fx_history.csv"
