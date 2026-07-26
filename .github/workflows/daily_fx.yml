@@ -1,0 +1,42 @@
+name: Update FX Data Daily
+
+on:
+  schedule:
+    # Runs at 21:00 UTC (18:00 BRT / Market Close) Monday to Friday
+    - cron: '0 21 * * 1-5'
+  # Allows manual runs from the GitHub website Actions tab
+  workflow_dispatch:
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Pull repository files into the runner
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      # 2. Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # 3. Install dependencies from requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # 4. Run the FX tracking script
+      - name: Fetch and calculate FX rates
+        run: python update_fx.py
+
+      # 5. Commit updated CSVs back to the repository
+      - name: Commit and push updated CSVs
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add fx_history.csv fx_dashboard.csv
+          git commit -m "Auto-update FX rates [skip ci]" || exit 0
+          git push
