@@ -14,9 +14,21 @@ new_data = {"date": today}
 currencies = ["USD", "EUR", "GBP", "CNY", "JPY"]
 
 for curr in currencies:
+    # AwesomeAPI keys in response are formatted as "USDBRL" or "USD-BRL"
     key = f"{curr}BRL"
-    new_data[curr] = float(response[key]["bid"])
+    
+    # Check if key exists directly, otherwise try hyphenated or lowercase
+    if key in response:
+        bid_value = response[key]["bid"]
+    elif f"{curr}-BRL" in response:
+        bid_value = response[f"{curr}-BRL"]["bid"]
+    else:
+        # Fallback search for matching dict key regardless of formatting
+        matching_key = next((k for k in response if k.upper().startswith(curr)), None)
+        bid_value = response[matching_key]["bid"]
 
+    new_data[curr] = float(bid_value)
+    
 # 2. Append/Update history CSV
 history_file = "fx_history.csv"
 
