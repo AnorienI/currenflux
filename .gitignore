@@ -1,3 +1,22 @@
+# Arquivos de dados e saídas geradas
+*.csv
+*.log
+
+# Ambientes virtuais (Python)
 fxenv/
+venv/
+env/
+.venv/
+
+# Pastas de cache e compilação do Python
 __pycache__/
 *.pyc
+*.pyo
+
+# Arquivos de configuração da IDE/Editor
+.vscode/
+.idea/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db

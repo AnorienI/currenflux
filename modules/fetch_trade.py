@@ -1,0 +1,66 @@
+import pandas as pd
+import requests
+from datetime import datetime
+
+def get_trade_balance():
+    """
+    Busca os dados consolidados da Balança Comercial do Brasil (BCB/SGS)
+    - Série 22707: Exportações (FOB) - US$ milhões
+    - Série 22708: Importações (FOB) - US$ milhões
+    - Série 22709: Saldo da Balança Comercial - US$ milhões
+    """
+    # Buscar o último mês disponível de cada série
+    url_exp = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.22707/dados/ultimos/1?formato=json"
+    url_imp = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.22708/dados/ultimos/1?formato=json"
+    url_bal = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.22709/dados/ultimos/1?formato=json"
+
+    res_exp = requests.get(url_exp, timeout=10).json()[0]
+    res_imp = requests.get(url_imp, timeout=10).json()[0]
+    res_bal = requests.get(url_bal, timeout=10).json()[0]
+
+    date_ref = res_exp['data']
+    exports_usd_m = float(res_exp['valor'])
+    imports_usd_m = float(res_imp['valor'])
+    balance_usd_m = float(res_bal['valor'])
+
+    return {
+        "reference_period": date_ref,
+        "exports_usd_m": exports_usd_m,
+        "imports_usd_m": imports_usd_m,
+        "balance_usd_m": balance_usd_m
+    }
+
+def run():
+    print("=== Atualizando Dados de Comércio Exterior ===")
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    try:
+        trade_data = get_trade_balance()
+        ref_date = trade_data["reference_period"]
+        exp = trade_data["exports_usd_m"]
+        imp = trade_data["imports_usd_m"]
+        bal = trade_data["balance_usd_m"]
+
+        print(f"[Brasil - Comex] Mês de Referência: {ref_date}")
+        print(f"  └─ Exportações: US$ {exp:,.2f} Mi")
+        print(f"  └─ Importações: US$ {imp:,.2f} Mi")
+        print(f"  └─ Saldo Comercial: US$ {bal:,.2f} Mi")
+
+        # Salvar/Atualizar no CSV de Comércio Exterior
+        df = pd.DataFrame([{
+            "date_updated": today,
+            "reference_period": ref_date,
+            "country": "BRA",
+            "exports_usd_millions": exp,
+            "imports_usd_millions": imp,
+            "trade_balance_usd_millions": bal
+        }])
+
+        df.to_csv("trade_data.csv", index=False)
+        print("-> Salvo com sucesso em trade_data.csv\n")
+
+    except Exception as e:
+        print(f"Erro no módulo de Comércio Exterior: {e}\n")
+
+if __name__ == "__main__":
+    run()
