@@ -10,9 +10,9 @@ def get_trade_balance():
     - Série 22709: Saldo da Balança Comercial - US$ milhões
     """
     # Buscar o último mês disponível de cada série
-    url_exp = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.22707/dados/ultimos/1?formato=json"
-    url_imp = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.22708/dados/ultimos/1?formato=json"
-    url_bal = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.22709/dados/ultimos/1?formato=json"
+    url_exp = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.22708/dados/ultimos/1?formato=json"
+    url_imp = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.22709/dados/ultimos/1?formato=json"
+    url_bal = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.22707/dados/ultimos/1?formato=json"
 
     res_exp = requests.get(url_exp, timeout=10).json()[0]
     res_imp = requests.get(url_imp, timeout=10).json()[0]
@@ -40,6 +40,15 @@ def run():
         exp = trade_data["exports_usd_m"]
         imp = trade_data["imports_usd_m"]
         bal = trade_data["balance_usd_m"]
+
+        calculated_balance = round(exp - imp, 1)
+
+        if abs(calculated_balance - bal) > 0.2:
+            raise ValueError(
+                f"Inconsistent trade data: "
+                f"Exports ({exp}) - Imports ({imp}) = {calculated_balance}, "
+                f"but API balance is {bal}."
+            )
 
         print(f"[Brasil - Comex] Mês de Referência: {ref_date}")
         print(f"  └─ Exportações: US$ {exp:,.2f} Mi")
