@@ -71,5 +71,6 @@ def run():
     except Exception as e:
         print(f"Erro no módulo de Comércio Exterior: {e}\n")
 
+
 if __name__ == "__main__":
     run()
