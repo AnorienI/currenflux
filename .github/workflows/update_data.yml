@@ -30,6 +30,11 @@ jobs:
       # 4. Run the full modular pipeline (FX, central banks, trade balance)
       - name: Run data pipeline
         run: python main.py
+      - name: Show generated files
+        run: |
+             pwd
+             ls -la
+             find . -name "*.csv"
 
        # 5. Push updated CSVs to the private data repo
       - name: Push data to private repo
