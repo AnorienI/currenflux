@@ -32,9 +32,9 @@ jobs:
         run: python main.py
       - name: Show generated files
         run: |
-             pwd
-             ls -la
-             find . -name "*.csv"
+            pwd
+            ls -la
+            find . -name "*.csv"
 
        # 5. Push updated CSVs to the private data repo
       - name: Push data to private repo
