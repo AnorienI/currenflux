@@ -1,4 +1,4 @@
-name: Update FX Data Daily
+name: Update CurrenFlux Data Daily
 
 on:
   schedule:
@@ -10,7 +10,6 @@ on:
 jobs:
   update-data:
     runs-on: ubuntu-latest
-
     steps:
       # 1. Pull repository files into the runner
       - name: Check out repo
@@ -28,15 +27,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # 4. Run the FX tracking script
-      - name: Fetch and calculate FX rates
-        run: python update_fx.py
+      # 4. Run the full modular pipeline (FX, central banks, trade balance)
+      - name: Run data pipeline
+        run: python main.py
 
       # 5. Commit updated CSVs back to the repository
       - name: Commit and push updated CSVs
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add fx_history.csv fx_dashboard.csv
-          git commit -m "Auto-update FX rates [skip ci]" || exit 0
+          git add fx_dashboard.csv cb_rates.csv trade_data.csv
+          git commit -m "Auto-update pipeline data [skip ci]" || exit 0
           git push
