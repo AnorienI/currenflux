@@ -38,7 +38,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git clone https://x-access-token:${TOKEN}@github.com/YOUR_USERNAME/currenflux-data.git data-repo
+          git clone https://x-access-token:${TOKEN}@github.com/AnorienI/currenflux-data.git data-repo
           cp fx_dashboard.csv cb_rates.csv trade_data.csv data-repo/
           cd data-repo
           git add .
