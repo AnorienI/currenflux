@@ -36,16 +36,21 @@ jobs:
             ls -la
             find . -name "*.csv"
 
-       # 5. Push updated CSVs to the private data repo
+     # 5. Push updated CSVs to the private data repo
       - name: Push data to private repo
         env:
           TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Clone target repo
           git clone https://x-access-token:${TOKEN}@github.com/AnorienI/currenflux.git data-repo
-          cp modules/fx_dashboard.csv modules/cb_rates.csv modules/trade_data.csv data-repo/
+          
+          # Copy CSVs generated in the root folder
+          cp *.csv data-repo/ 2>/dev/null || echo "No CSV files found in root"
+          
+          # Commit and Push
           cd data-repo
           git add .
-          git commit -m "Auto-update pipeline data [skip ci]" || exit 0
-          git push
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update pipeline data [skip ci]" && git push)
