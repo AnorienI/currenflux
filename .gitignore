@@ -1,5 +1,4 @@
 # Arquivos de dados e saídas geradas
-*.csv
 *.log
 
 # Ambientes virtuais (Python)
